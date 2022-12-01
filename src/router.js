@@ -5,20 +5,18 @@ import Login from './Login'
 
 import {getHash, resolveRoutes} from "./utils/general"
 import About from './About'
-import Comments from './Comments'
 import Articles from './Articles'
 import Contact from './Contact'
 import { paths, uris } from './utils/responses'
 import Details from './Details'
 
 const loading = `
-<div class="col d-flex justify-content-center" style="margin-top:150px">
+<div class="col d-flex justify-content-center" style="margin-top:150px; height:300px">
     <img src='./src/img/loading.gif' width="100" height="100"/>
 </div>`;
 
 const routes = {
     [uris.PAGE_INIT]: About,
-    [uris.PAGE_COMMENTS]: Comments,
     [uris.PAGE_DETAIL]: Details,
     [uris.PAGE_ARTICLES]: Articles,
     [uris.PAGE_CONTACT]: Contact,
@@ -28,7 +26,7 @@ const router = async ()=>{
     let hash = getHash();
     if(hash=='') return;
     let route = resolveRoutes(hash);
-    console.log(route)
+
     let render = routes[route]?routes[route]:Error("Error");
 
     if(s.onSession()){

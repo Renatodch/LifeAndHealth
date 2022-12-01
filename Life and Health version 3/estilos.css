@@ -114,7 +114,7 @@ html{
     display: flex;
     align-items: center;
     justify-content: center;
-    background: url(./img/inicio_fondo.png) no-repeat;
+    background: url(../img/inicio_fondo.png) no-repeat;
     background-size: cover;
     background-position: center;
   }
@@ -187,7 +187,7 @@ html{
   }
 
   .acerca_de{
-    background: url(./img/fondo_2.png) no-repeat;
+    background: url(../img/fondo_2.png) no-repeat;
     background-size: cover;
     background-position: center;
     padding-bottom: 3rem;
@@ -230,7 +230,7 @@ html{
   .suscribete{
     text-align: center;
     padding: 5rem 1rem;
-    background: url(./img/fondo_sub.png) no-repeat;
+    background: url(../img/fondo_sub.png) no-repeat;
     background-size: cover;
     background-position: center;
   }
@@ -409,7 +409,7 @@ html{
 
   .footer{
     padding-top: 3rem;
-    background: url(../img/footer-fondo.png) no-repeat;
+    background: url(img/footer-fondo.png) no-repeat;
     background-size: cover;
     background-position: center;
   }

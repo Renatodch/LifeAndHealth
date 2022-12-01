@@ -1,5 +1,5 @@
 import { pathContent, setCurrentPage, monthNames } from "./utils/general";
-import $, { data } from 'jquery'
+import $, { data, isPlainObject } from 'jquery'
 import * as s from "./utils/session"
 import * as da from "./Controller"
 import { lengths, messages, responses } from "./utils/responses";
@@ -10,16 +10,20 @@ let comments;
 let currentSec;
 let numberOfSec;
 
-const publishComment = async()=>{
+const publishComment = async(article_id)=>{
     let user = s.onSession();
     let data = {
         UserName :user.Data.Name,
         UserID :user._id,
         Content: $("#idComment").val(),
+        Rate: $("#idRate").val(),
+        article_id
     }
     if(data.Content == ""){
         alert("No has escrito tu comentario");return;
     }
+    data.Rate = (+data.Rate).toFixed(1)
+    console.log(data.Rate);
     let obj = {
         Data:data,
         _id:"",
@@ -31,7 +35,7 @@ const publishComment = async()=>{
     switch(res.res){
         case responses.SUCCESS_SAVE:
             //console.log(res.d);
-            await UpdateComments(0);
+            await UpdateComments(0, article_id);
             break;
         case responses.SERVER_ERROR:
             alert(messages.SERVER_ERROR);
@@ -39,13 +43,13 @@ const publishComment = async()=>{
     }
 }
 
-async function UpdateComments(num){
+async function UpdateComments(num, article_id){
     if($("#noComments_id").length>0){
         $("#noComments_id").remove();
     }
 
-    comments = await da.GetComments();
-    console.log(comments)
+    comments = await da.GetComments(article_id);
+
     numberOfComments = comments.length;
     if(comments === 0){
         alert(messages.BAD_GATEWAY);return;
@@ -58,18 +62,18 @@ async function UpdateComments(num){
     for(let i = 1; i<=numberOfSec; i++){
         $(`#comments_${i}`).off("click")
         $(`#comments_${i}`).on("click",(e)=>{
-            UpdateComments($(e.target).html()-1);
+            UpdateComments($(e.target).html()-1, article_id);
         })
     }
     $(`#prevPage_id`).off("click")
     $(`#prevPage_id`).on("click",(e)=>{
         if(currentSec > 1)
-            UpdateComments(currentSec-2);
+            UpdateComments(currentSec-2, article_id);
     })
     $(`#nextPage_id`).off("click")
     $(`#nextPage_id`).on("click",(e)=>{
         if(currentSec < numberOfSec)
-            UpdateComments(currentSec);
+            UpdateComments(currentSec, article_id);
     })
 }
 
@@ -83,16 +87,30 @@ function MakeComments(num){
     let segment = comments.slice(5*num, 5*num+left)
     return numberOfComments === 0? `<h5 id="noComments_id" class="mt-3">Aun no hay comentarios</h5>`:segment.map(obj => {
         let dateStr = MakeDateString(obj.Data.FullDate);  
+        let rate = +obj.Data.Rate;
+        console.log(rate)
+        let stars="";
+        for(let s = 1; s<= 5; s++){
+            if(rate>=s){
+                stars += `<span class="me-2"><i class="fa fa-star"></i></span>`;
+            }else if(s > rate){
+                if((s - rate) < 1){
+                    stars += `<span class="me-2"><i class="fa fa-star-half-o"></i></span>`;
+                }else{
+                    stars += `<span class="me-2"><i class="fa fa-star-o"></i></span>`;
+                }
+            }
+        }
         return (`
-        <div class="row mt-4 text-justify float-left shadow p-3 bg-body rounded">
+        <div class="row mt-4 text-justify float-left shadow  bg-body rounded">
             <div class="col">
-                <div class="row">
-                    <div class="col-2">
-                        <div class="row">
+                <div class="row p-1">
+                    <div class="col-1 me-4">
+                        <div class="row " style="width:85px">
                             <img src="./src/img/profile.png" alt="" class="rounded-circle" width="50" height="60">
                         </div>
                     </div>
-                    <div class="col-8 pt-1">
+                    <div class="col-6 pt-1">
                         <div class="row">
                             <strong>${obj.Data.UserName}</strong>
                         </div>
@@ -100,8 +118,15 @@ function MakeComments(num){
                             <div>@${obj.Data.UserID}</div>
                         </div>
                     </div>
+                    <div class="col pt-2">
+                        <div class="row">
+                            <div class="col">
+                            ${stars}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="row pt-2">
+                <div class="row pt-2 px-3 pb-3">
                     <p>${obj.Data.Content}</p>
                     <br>
                     <span>${dateStr}</span>
@@ -121,8 +146,8 @@ function MakeDateString(timestamp){
 function MakeIndex(){
     numberOfSec = parseInt(""+numberOfComments/5);
     numberOfSec += +(!(numberOfComments%5===0) ||  numberOfComments===0)
-    console.log("secciones: "+numberOfSec)
-    console.log("comentarios: "+numberOfComments)
+   
+    
     let content = `<li class="page-item"><button class="page-link" id="prevPage_id">Previous</button></li>`;
     for(let i = 1; i<=numberOfSec; i++){
         content += `<li class="page-item"><button class="page-link" id="comments_${i}">${i}</button></li>`
@@ -130,19 +155,22 @@ function MakeIndex(){
     content += `<li class="page-item"><button class="page-link" id="nextPage_id">Next</button></li>`;
     return content;
 }
-const Comments = async (id)=>{
-    pathContent("Comentarios");
-    setCurrentPage("commentsNavLink_id");
+const Comments = async (id, article_id)=>{
 
     let content =`
         <div class="col">
-
-            <div class="row mx-5">
-                <div id="commentsDiv_id" class="col-sm-12 col-md-10 col-lg-7 pb-1">
+            <div class="row">
+                        
+                <div class="col pt-2 align-self-end">
+                    <span id="detailIndex_id"></span>
+                </div>
+            </div>
+            <div class="row ">
+                <div id="commentsDiv_id" class="col-sm-12  pb-1">
                     
                 </div>
             </div>
-            <div class="row mx-5 mt-3">
+            <div class="row  mt-3">
                 <div class="col-5 ">
                     <nav aria-label="Page navigation ">
                         <ul class="pagination" id="index_id">
@@ -150,15 +178,22 @@ const Comments = async (id)=>{
                         </ul>
                     </nav>
                 </div>
-                <div class="col">
-                    <span id="detailIndex_id"></span>
+                
+            </div>
+            
+            <div class="row mb-1 mt-3 pe-5">
+                <div class="col-6 pt-2">
+                    <label for="idRate" class="form-label">Califica este artículo</label>
+                </div>
+                <div class="col-4 pe-5">
+                    <input type="number" min=0.0 max=5.0 step=0.5 class="form-control" id="idRate" value=0 required value="">
                 </div>
             </div>
-            <div class="row mx-5 mb-3 mt-3">
-                <label for="idComment" class="form-label">Déjanos tu comentario</label>
+            <div class="row mb-3 mt-3">
+                <label for="idComment" class="form-label">Y déjanos tu comentario</label>
                 <textarea  maxlength="${lengths.MAX_256}" class="form-control" id="idComment" required value=""></textarea>
             </div>
-            <div class="row mx-5 mb-3">
+            <div class="row mb-3">
                 <div class="col-3">
                     <button id="btnPublish_id" class="btn btn-primary">Publicar</button>
                 </div>
@@ -167,11 +202,22 @@ const Comments = async (id)=>{
     `;
     $(id).html(content);
 
-    await UpdateComments(0);
+    await UpdateComments(0, article_id);
 
     $("#btnPublish_id").on("click",async ()=>{
-        await publishComment();
+        await publishComment(article_id);
     });
+
+    $("#idRate").on("input", (e)=>{
+        let val = +$(e.target).val();
+        val = String(val).match(/[0-9]+([.][0-9]*)?/g);
+        if(val ){
+            $(e.target).val(+val[0] > 5? 0: +val[0] );
+        }
+         
+    })
 }
 
-export default Comments;
+export {
+    Comments
+};

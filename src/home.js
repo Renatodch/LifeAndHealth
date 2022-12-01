@@ -32,9 +32,11 @@ const Home = async (id)=>{
                                     <li class="nav-item">
                                         <a class="nav-link " id="detailsNavLink_id" href="#${uris.PAGE_DETAIL}">Detalles</a>
                                     </li>
+                                    <!--
                                     <li class="nav-item">
                                         <a class="nav-link " id="commentsNavLink_id" href="#${uris.PAGE_COMMENTS}">Comentarios</a>
-                                    </li>                                    
+                                    </li>
+                                    -->                                    
                                     <li class="nav-item">
                                         <a class="nav-link " id="contactNavLink_id" href="#${uris.PAGE_CONTACT}">Contacto</a>
                                     </li>

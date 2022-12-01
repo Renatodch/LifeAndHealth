@@ -1,13 +1,15 @@
 import { pathContent, setCurrentPage } from "./utils/general";
+import * as c from "./Controller"
 import $ from 'jquery'
 import * as bootstrap from "bootstrap"
+import {Comments} from "./Comments"
 
 let myModal;
 
 let buttonHandler = ()=>{
     console.log("Done")
 }
-let modalSave = (button, title, content)=> {
+let modalSave = async(button, title)=> {
 
     return {
     "buttonHandler": buttonHandler,
@@ -15,57 +17,43 @@ let modalSave = (button, title, content)=> {
     "title": `${title}`,
     "body": 
     `
-    <div class="row" id="modalContent_id">
-        <div class="col">
-            ${content}
+    <div class="container" >
+        <div class="row" id="modalContent_id">
         </div>
     </div>
     `
 }};
 
-const Articles = (id)=>{
+const Articles = async (id)=>{
     pathContent("Artículos");
     setCurrentPage("articlesNavLink_id");
+    let articles = await c.GetArticles();
+    console.log(articles)
     let content =`
     <div class="col">
         <div class="row px-4 mb-4">
-            <div class="card mx-2 my-2 pt-3" style="width: 25rem;">
-                <img src="./src/img/icono1.png" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Alimentación Saludable</h5>
-                    <p class="card-text">La alimentación, en todas sus variantes culturales y en un sentido amplio, define la salud de las personas, su crecimiento y su desarrollo. La alimentación diaria de cada individuo debe contener una cantidad suficiente de los diferentes macro nutrientes y micronutrientes para cubrir la mayoría de las necesidades fisiológicas.</p>
-                    <button href="#" class="btn-card btn btn-primary">Ver Más</button>
-                </div>
-            </div>
-            <div class="card mx-2 my-2 pt-3" style="width: 25rem;">
-                <img src="./src/img/icono2.png" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Importancia de la alimentación saludable</h5>
-                    <p class="card-text">Las enfermedades crónicas no transmisibles (diabetes mellitus tipo 2, enfermedades cardiovasculares, determinados tipos de neoplasias) suponen las principales causas de muerte y discapacidad en todo el mundo.</p>
-                    <button href="#" class="btn-card btn btn-primary">Ver Más</button>
-                </div>
-            </div>
-            <div class="card mx-2 my-2 pt-3" style="width: 25rem;">
-                <img src="./src/img/icono3.png" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">Dieta saludable</h5>
-                    <p class="card-text">La dieta saludable debe ser "suficiente" y "completa", esto significa que debe cubrir las necesidades de energía, macro y micronutrientes, agua y fibra.</p>
-                    <button href="#" class="btn-card btn btn-primary">Ver Más</button>
-                </div>
-            </div>
+            ${articles.map(a=>`
+                    <div class="card mx-2 my-2 pt-3" style="width: 25rem;" id="${a._id}">
+                        <img src="./src/img/${a.Data.ImageFileName}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">${a.Data.Title}</h5>
+                            <p class="card-text">${a.Data.Content}</p>
+                            <button href="#" class="btn-card btn btn-primary">Ver Comentarios</button>
+                        </div>
+                    </div>
+            `).join("")}
         </div>
-
-        
     </div>
     `;
     $(id).html(content);
 
-    $(".btn-card").on("click",(e)=>{
+    $(".btn-card").on("click", async (e)=>{
         let title = $(e.target).siblings(".card-title").text();
-        let content = $(e.target).siblings(".card-text").text();
-
+        let id = $(e.target).parent().parent()[0].id
         //console.log(title);
-        BuildModal(modalSave("Aceptar",title,content));
+        let modal = await modalSave("Aceptar",`Comentarios de "${title}"`)
+        BuildModal(modal);
+        Comments("#modalContent_id",id) 
     })
 }
 

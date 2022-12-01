@@ -1,4 +1,6 @@
-const url = "http://localhost:8766";
+import { paths } from "./utils/responses";
+
+const url = paths.HTTP_URL;
 const url_login = `${url}/login`
 const url_user = `${url}/user`
 const url_articles = `${url}/articles`
@@ -67,12 +69,12 @@ const GetArticles = async ()=>{
         return 0;
     }
 }
-const GetComments = async ()=>{
+const GetComments = async (article_id)=>{
     try{
         const settings = {
             method: 'GET',                    
         };
-        const response = await fetch(url_comments,settings)
+        const response = await fetch(`${url_comments}/?article_id=${article_id}`,settings)
         const data = await response.json();
 
         return data;
